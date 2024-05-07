@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { TextField, Button, Container, Typography, Box, CssBaseline, Grid } from '@mui/material';
-import {Link} from "react-router-dom";
+import { TextField, Button, Container, Typography, Box, CssBaseline, Grid, Snackbar, Alert } from '@mui/material';
+import { Link, useNavigate } from "react-router-dom";
 
 const RegisterPage = () => {
     const [firstName, setFirstName] = useState('');
@@ -10,6 +10,9 @@ const RegisterPage = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState({});
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const navigate = useNavigate();
 
     const validateForm = () => {
         const newErrors = {};
@@ -32,6 +35,8 @@ const RegisterPage = () => {
 
         if (!validateForm()) {
             console.error('Form validation failed');
+            setSnackbarMessage('Form validation failed. Check input fields.');
+            setSnackbarOpen(true);
             return;
         }
 
@@ -51,9 +56,18 @@ const RegisterPage = () => {
 
         if (response.ok) {
             console.log('Registration successful');
+            // TODO: Setup link email verification
+            setSnackbarMessage('TODO: Setup link email verification');
+            setSnackbarOpen(true);
         } else {
             console.error('Registration failed');
+            setSnackbarMessage('Registration failed. Please try again.');
+            setSnackbarOpen(true);
         }
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
     };
 
     return (
@@ -184,6 +198,12 @@ const RegisterPage = () => {
                     </Typography>
                 </Box>
             </Box>
+
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+                <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 };
