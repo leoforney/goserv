@@ -1,5 +1,21 @@
-### GET request to example server
-GET https://examples.http-client.intellij.net/get$END$
-    ?generated-in=IntelliJ IDEA
+POST http://localhost:8080/register
+Accept: application/json
+
+{
+"username": "leoforney",
+"email": "forneyleo@gmail.com",
+"firstName": "Leo",
+"lastName": "Forney",
+"password": "password"
+}
+###
+
+POST http://localhost:8080/login
+Accept: application/json
+
+{
+"username": "leoforney",
+"password": "password"
+}
 
 ###
