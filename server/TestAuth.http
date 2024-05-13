@@ -1,4 +1,4 @@
-POST http://localhost:8080/register
+POST http://localhost:8080/api/register
 Accept: application/json
 
 {
@@ -10,7 +10,7 @@ Accept: application/json
 }
 ###
 
-POST http://localhost:8080/login
+POST http://localhost:8080/api/login
 Accept: application/json
 
 {

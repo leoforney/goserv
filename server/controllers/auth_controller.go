@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"goserv/config"
+	"goserv/models"
 	"net/http"
 	"time"
 )
@@ -35,7 +36,7 @@ func ValidateJWT(tokenString string) (*jwt.MapClaims, error) {
 	return &claims, nil
 }
 
-func RegisterUser(c *gin.Context, db *sql.DB) {
+func RegisterUser(c *gin.Context, db *gorm.DB) {
 	var user struct {
 		Username  string `json:"username"`
 		Email     string `json:"email"`
@@ -55,8 +56,13 @@ func RegisterUser(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO users (username, email, firstname, lastname, password) VALUES (?, ?, ?, ?, ?)",
-		user.Username, user.Email, user.FirstName, user.LastName, string(hashedPassword))
+	err = models.CreateUser(db, models.User{
+		Username:  user.Username,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Password:  string(hashedPassword),
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not register user"})
 		return
@@ -65,7 +71,7 @@ func RegisterUser(c *gin.Context, db *sql.DB) {
 	c.JSON(http.StatusOK, gin.H{"message": "Registration successful"})
 }
 
-func Login(c *gin.Context, db *sql.DB) {
+func Login(c *gin.Context, db *gorm.DB) {
 	var creds struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -76,14 +82,14 @@ func Login(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	var hashedPassword string
-	err := db.QueryRow("SELECT password FROM users WHERE username = ?", creds.Username).Scan(&hashedPassword)
+	var user models.User
+	err := models.GetUserByUsername(db, creds.Username, &user)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(creds.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return

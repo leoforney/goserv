@@ -1,14 +1,14 @@
 package middleware
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"goserv/controllers"
 	"goserv/models"
 	"net/http"
 )
 
-func JWTAuthMiddleware(db *sql.DB) gin.HandlerFunc {
+func JWTAuthMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || len(authHeader) < 8 || authHeader[:7] != "Bearer " {
@@ -26,14 +26,15 @@ func JWTAuthMiddleware(db *sql.DB) gin.HandlerFunc {
 
 		username := (*claims)["username"].(string)
 
-		user, err := models.GetUserByUsername(db, username)
+		var user models.User
+		err = models.GetUserByUsername(db, username, &user)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
 			c.Abort()
 			return
 		}
 
-		c.Set("user", *user)
+		c.Set("user", user)
 		c.Next()
 	}
 }

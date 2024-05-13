@@ -16,7 +16,7 @@ func MeEndpoint(c *gin.Context) {
 	typedUser := user.(models.User)
 	c.JSON(http.StatusOK, gin.H{
 		"username":  typedUser.Username,
-		"fullName":  typedUser.FullName,
+		"fullName":  typedUser.FirstName + " " + typedUser.LastName,
 		"email":     typedUser.Email,
 		"firstName": typedUser.FirstName,
 		"lastName":  typedUser.LastName,

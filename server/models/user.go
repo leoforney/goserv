@@ -1,39 +1,24 @@
 package models
 
 import (
-	"database/sql"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	ID        int    `json:"id"`
-	Username  string `json:"username"`
-	FullName  string `json:"fullName"`
-	Email     string `json:"email"`
+	gorm.Model
+	Username  string `json:"username" gorm:"unique;not null"`
+	Email     string `json:"email" gorm:"unique;not null"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	Password  string `gorm:"not null"`
 }
 
-func CreateTables(db *sql.DB) error {
-	createTableSQL := `
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        firstname TEXT NOT NULL,
-        lastname TEXT NOT NULL,
-        password TEXT NOT NULL
-    );`
-	_, err := db.Exec(createTableSQL)
-	return err
+func CreateUser(db *gorm.DB, user User) error {
+	result := db.Create(&user)
+	return result.Error
 }
 
-func GetUserByUsername(db *sql.DB, username string) (*User, error) {
-	var user User
-	query := "SELECT id, username, email, firstname, lastname FROM users WHERE username = ?"
-	err := db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Email, &user.FirstName, &user.LastName)
-	if err != nil {
-		return nil, err
-	}
-	user.FullName = user.FirstName + " " + user.LastName
-	return &user, nil
+func GetUserByUsername(db *gorm.DB, username string, user *User) error {
+	result := db.Where("username = ?", username).First(user)
+	return result.Error
 }
